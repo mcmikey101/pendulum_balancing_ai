@@ -50,9 +50,9 @@ class Agent():
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
-        self.epsilon = 1000 - self.n_sims
+        self.epsilon = 500 - self.n_sims
         final_move = [0, 0]
-        if random.randint(0, 500) < self.epsilon:
+        if random.randint(0, 250) < self.epsilon:
             move = random.randint(0, 1)
             final_move[move] = 1
         else:

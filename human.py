@@ -66,21 +66,21 @@ class Point():
             self.x = 90
             self.vec_x = 0
 
-        if self.vec_x > 45:
-            self.vec_x = 45
-        elif self.vec_x < -45:
-            self.vec_x = -45
-        if self.vec_y > 45:
-            self.vec_y = 45
-        elif self.vec_y < -45:
-            self.vec_y = -45
+        # if self.vec_x > 50:
+        #     self.vec_x = 50
+        # elif self.vec_x < -50:
+        #     self.vec_x = -50
+        # if self.vec_y > 50:
+        #     self.vec_y = 50
+        # elif self.vec_y < -50:
+        #     self.vec_y = -50
 
 class Pendulum():
-    def __init__(self, w=1200, h=640, speed=30, gravity=4):
+    def __init__(self, w=1200, h=640, speed=60, gravity=10):
         self.w = w
         self.h = h
-        self.stem_to_joint = 200
-        self.joint_to_leaf = 80
+        self.stem_to_joint = 150
+        self.joint_to_leaf = 100
         self.gravity = gravity
         self.speed = speed
         self.display = pygame.display.set_mode((self.w, self.h))
@@ -91,7 +91,8 @@ class Pendulum():
     def reset(self):
         self.force = Vector(0, 0)
         self.stem = Point(self.w / 2, self.h / 2, 0, 0, 0, 0, fixed=True)
-        self.joint = Point(self.w / 2, self.h / 2 + 200, 0, 0, 0, 0, tethered=True)
+        self.joint = Point(self.w / 2, self.h / 2, 0, 0, 0, 0, tethered=True)
+        self.leaf = Point(self.w / 2, self.h / 2, 0, 0, 0, 0, tethered=True)
         self.gravity_vec = Vector(0, self.gravity)
         self.time_up = 0
         self.frame_iteration = 0
@@ -104,19 +105,22 @@ class Pendulum():
                 quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    self.force = Vector(-2, 0)
+                    self.force = Vector(-2.5, 0)
                 elif event.key == pygame.K_RIGHT:
-                    self.force = Vector(2, 0)
+                    self.force = Vector(2.5, 0)
 
         self.stem.move(self.force, self.w, self.h, self.gravity_vec)
-        self.joint.move(Vector(-self.stem.vec_x, -self.stem.vec_y), self.w, self.h, self.gravity_vec, link=Vector(self.stem.x, self.stem.y), rad=self.stem_to_joint)
+        self.joint.move(Vector(-self.stem.vec_x * 0.8, self.stem.vec_y * 0.8), self.w, self.h, self.gravity_vec, link=Vector(self.stem.x, self.stem.y), rad=self.stem_to_joint)
+        self.leaf.move(Vector(-self.joint.vec_x * 0.8, self.joint.vec_y * 0.8), self.w, self.h, self.gravity_vec, link=Vector(self.joint.x, self.joint.y), rad=self.joint_to_leaf)
 
         self.reward = 0
         self.done = False
 
-        if self.joint.y < self.h / 2:
+        if self.leaf.y < self.h / 2:
             self.reward = 5
             self.time_up += 1
+        else:
+            self.reward = -1
         
         if self.frame_iteration == 50:
             self.done = True
@@ -131,9 +135,11 @@ class Pendulum():
         self.display.fill((255, 255, 255))
 
         pygame.draw.line(self.display, (0, 0, 0), (self.stem.x, self.stem.y), (self.joint.x, self.joint.y), 10)
+        pygame.draw.line(self.display, (0, 0, 0), (self.joint.x, self.joint.y), (self.leaf.x, self.leaf.y), 10)
 
         pygame.draw.circle(self.display, (0, 0, 255), (self.stem.x, self.stem.y), 30)
         pygame.draw.circle(self.display, (0, 255, 0), (self.joint.x, self.joint.y), 20)
+        pygame.draw.circle(self.display, (255, 0, 0), (self.leaf.x, self.leaf.y), 20)
 
         text = font.render("Reward: " + str(self.reward) + " Time up: " + str(self.time_up) + "fvx: " + str(self.stem.force_vec_x) + "fvy: " + str(self.stem.force_vec_y), True, (0, 0, 0))
         self.display.blit(text, [0, 0])

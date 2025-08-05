@@ -66,21 +66,11 @@ class Point():
             self.x = 90
             self.vec_x = 0
 
-        if self.vec_x > 45:
-            self.vec_x = 45
-        elif self.vec_x < -45:
-            self.vec_x = -45
-        if self.vec_y > 45:
-            self.vec_y = 45
-        elif self.vec_y < -45:
-            self.vec_y = -45
-
 class Pendulum():
-    def __init__(self, w=1200, h=640, speed=120, gravity=4):
+    def __init__(self, w=1200, h=640, speed=120, gravity=10):
         self.w = w
         self.h = h
         self.stem_to_joint = 200
-        self.joint_to_leaf = 80
         self.gravity = gravity
         self.speed = speed
         self.display = pygame.display.set_mode((self.w, self.h))
@@ -104,9 +94,9 @@ class Pendulum():
                 quit()
 
         if action[0] == 1:
-            self.force = Vector(-2, 0)
+            self.force = Vector(-5, 0)
         else:
-            self.force = Vector(2, 0)
+            self.force = Vector(5, 0)
 
         self.stem.move(self.force, self.w, self.h, self.gravity_vec)
         self.joint.move(Vector(-self.stem.vec_x, -self.stem.vec_y), self.w, self.h, self.gravity_vec, link=Vector(self.stem.x, self.stem.y), rad=self.stem_to_joint)
@@ -117,11 +107,11 @@ class Pendulum():
         if self.joint.y < self.h / 2:
             self.reward = 5
             self.time_up += 1
+        else:
+            self.reward = -1
         
         if self.frame_iteration == 360:
             self.done = True
-            if self.time_up == 0:
-                self.reward = -5
             return self.reward, self.done, self.time_up
         
         self._update_ui()
